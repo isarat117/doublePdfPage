@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Karşılaştırma</title>
+  <style>
+    #pdf-container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .pdf-viewer {
+      flex: 1;
+      overflow-y: scroll;
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+  <div id="pdf-container">
+    <div id="pdf-viewer-1" class="pdf-viewer"></div>
+    <div id="pdf-viewer-2" class="pdf-viewer"></div>
+  </div>
+  <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+  <script>
+    const pdfContainer1 = document.getElementById('pdf-viewer-1');
+    const pdfContainer2 = document.getElementById('pdf-viewer-2');
+
+    pdfContainer1.addEventListener('scroll', () => {
+      pdfContainer2.scrollTop = pdfContainer1.scrollTop;
+    });
+
+    pdfContainer2.addEventListener('scroll', () => {
+      pdfContainer1.scrollTop = pdfContainer2.scrollTop;
+    });
+
+    const pdfUrl1 = './WEEK1-2.pdf';
+    const pdfUrl2 = './WEEK1-2 tr.pdf';
+
+    async function loadPdf(pdfUrl, container) {
+      const loadingTask = pdfjsLib.getDocument(pdfUrl);
+      const pdf = await loadingTask.promise;
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const scale = 2.0;
+        const viewport = page.getViewport({ scale: scale });
+
+        const canvas = document.createElement('canvas');
+        container.appendChild(canvas);
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+        await page.render(renderContext).promise;
+      }
+    }
+
+    loadPdf(pdfUrl1, pdfContainer1);
+    loadPdf(pdfUrl2, pdfContainer2);
+  </script>
+</body>
+</html>
